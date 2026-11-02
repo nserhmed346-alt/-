@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>الدراويش</title>
+<style>
+:root{--o:#ff5500;--o2:#ff8a00;--card:#111113;--line:rgba(255,255,255,.07);--sub:#8e8e93}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;font-family:'Segoe UI',Tahoma,system-ui,sans-serif;user-select:none}
+html,body{height:100%;background:#000;color:#fff;overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+input{user-select:text}
+
+/* الخلفية */
+#bg{position:fixed;inset:0;z-index:0;background:#000 center/cover no-repeat}
+#bg::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.55)}
+#poem{position:fixed;inset:0;z-index:1;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;text-align:center;color:rgba(255,255,255,.12);font-size:1.05rem;line-height:1.9}
+#birds{position:fixed;inset:0;z-index:2;pointer-events:none;overflow:hidden}
+.bird{position:absolute;opacity:.28;animation:fly linear infinite}
+.bird .w{transform-box:fill-box;transform-origin:center bottom;animation:flap .5s ease-in-out infinite alternate}
+@keyframes fly{from{transform:translateX(-120px)}to{transform:translateX(calc(100vw + 120px)) translateY(-60px)}}
+@keyframes flap{to{transform:scaleY(.2)}}
+
+.app{position:relative;z-index:3;height:100%;display:flex;flex-direction:column}
+
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.logo{font-size:1.4rem;font-weight:900;background:linear-gradient(45deg,var(--o),var(--o2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;cursor:pointer}
+.chip{font-size:.8rem;padding:6px 10px;border-radius:14px;background:rgba(255,255,255,.08);color:var(--sub)}
+.btn-reset{display:none;background:rgba(255,255,255,.1);padding:7px 10px;border-radius:14px;font-size:.75rem}
+body.dev .btn-reset{display:inline-block}
+
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:12px 16px 0;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px}
+.tab{padding:9px 2px;border-radius:10px;color:var(--sub);font-size:.8rem;font-weight:700}
+.tab.on{background:var(--o);color:#fff}
+.bar{display:flex;gap:8px;margin:10px 16px}
+.search{flex:1;background:var(--card);border:1px solid var(--line);padding:10px 14px;border-radius:12px;font-size:.85rem;outline:none}
+.search::placeholder{color:var(--sub)}
+.sort{background:#111;border:1px solid var(--line);padding:0 10px;border-radius:12px;font-size:.78rem;outline:none}
+.sort option{background:#111}
+
+.list{flex:1;overflow-y:auto;padding:4px 16px 110px}
+.row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(17,17,19,.92);border:1px solid var(--line);border-radius:16px;margin-bottom:8px;cursor:pointer}
+.row.on{border-color:var(--o);background:rgba(255,85,0,.14)}
+.ico{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#2a0f00,#ff5500);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.info{flex:1;min-width:0}
+.name{font-size:.9rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{font-size:.72rem;color:var(--sub);margin-top:3px}
+.heart,.more{font-size:1.05rem;padding:6px;color:var(--sub)}
+.heart.on{color:var(--o)}
+.empty{text-align:center;color:var(--sub);padding:40px 10px;font-size:.88rem}
+
+/* الميني بلاير */
+.mini{position:fixed;left:12px;right:12px;bottom:12px;z-index:10;display:none;align-items:center;gap:10px;padding:10px 12px;background:rgba(25,25,28,.96);border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.6);cursor:pointer}
+.mini.show{display:flex}
+.mini .pp{width:40px;height:40px;border-radius:50%;background:var(--o);color:#fff;font-size:1rem;flex-shrink:0}
+
+/* شاشة الأغنية */
+.np{position:fixed;inset:0;z-index:30;background:linear-gradient(180deg,#1f0a00,#000 60%);display:none;flex-direction:column;padding:14px 22px 26px;overflow-y:auto}
+.np.show{display:flex}
+.np-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.np-top button{font-size:1.2rem;color:var(--sub);padding:6px 10px}
+.np-top span{font-size:.75rem;color:var(--sub)}
+.stage{width:100%;aspect-ratio:1/1;max-height:42vh;border-radius:24px;background:linear-gradient(135deg,#ff5500,#2a0f00);display:flex;align-items:center;justify-content:center;box-shadow:0 20px 50px rgba(255,85,0,.25)}
+.glyph{font-size:5rem;font-weight:900}
+.np-title{font-size:1.2rem;font-weight:800;margin-top:20px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np-sub{text-align:center;color:var(--sub);font-size:.8rem;margin:4px 0 18px}
+.prog{height:6px;background:rgba(255,255,255,.12);border-radius:10px;cursor:pointer;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--o),var(--o2))}
+.times{display:flex;justify-content:space-between;font-size:.72rem;color:var(--sub);margin:6px 0 18px;font-family:monospace}
+.ctrls{display:flex;justify-content:space-around;align-items:center;margin-bottom:22px}
+.ctrls button{font-size:1.5rem;padding:8px;opacity:.85}
+.ctrls .big{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--o),#ff7700);font-size:1.7rem;box-shadow:0 8px 24px rgba(255,85,0,.45);opacity:1}
+.actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.act{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;border-radius:16px;background:var(--card);border:1px solid var(--line);font-size:.7rem;color:var(--sub);font-weight:700}
+.act .e{font-size:1.2rem}
+.act.on{color:var(--o);border-color:var(--o);background:rgba(255,85,0,.12)}
+.queue{margin-top:16px;display:none}
+.queue.show{display:block}
+.queue-title{font-size:.85rem;color:var(--sub);margin-bottom:8px;font-weight:700}
+
+/* أزرار التحكم ثابتة الاتجاه (السابق يسار، التالي يمين) */
+.ctrls{direction:ltr}
+/* التحديد المتعدد */
+.selbar{position:fixed;left:12px;right:12px;bottom:12px;z-index:20;display:none;align-items:center;gap:6px;padding:10px 12px;background:rgba(25,25,28,.97);border:1px solid var(--o);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+.selbar.show{display:flex}
+.selbar span{flex:1;font-size:.8rem;font-weight:700}
+.selbar button{background:rgba(255,255,255,.1);padding:8px 10px;border-radius:12px;font-size:.78rem;white-space:nowrap}
+.selbar .dev-only{display:none}
+body.dev .selbar .dev-only{display:inline-block}
+body.selecting .heart,body.selecting .more{display:none}
+
+/* الشيت */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;display:none}
+.scrim.show{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;background:#16161a;border-radius:24px 24px 0 0;padding:14px 18px 26px;display:none}
+.sheet.show{display:block}
+.grip{width:40px;height:4px;background:rgba(255,255,255,.2);border-radius:4px;margin:0 auto 14px}
+.sheet .opt{display:block;width:100%;text-align:right;padding:14px;border-radius:14px;font-size:.92rem;font-weight:600}
+.sheet .opt:active{background:rgba(255,255,255,.06)}
+.sheet .danger{color:#ff453a}
+.sheet input{width:100%;background:#000;border:1px solid var(--line);padding:12px;border-radius:12px;outline:none;margin:6px 0 10px}
+.sheet .save{background:var(--o);color:#fff;border-radius:12px;padding:12px;width:100%;font-weight:700}
+.toast{position:fixed;top:14px;left:50%;transform:translate(-50%,-150%);z-index:99;background:#222;padding:10px 16px;border-radius:14px;font-size:.8rem;transition:.25s;white-space:nowrap}
+.toast.show{transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+<div id="poem"></div>
+<div id="birds"></div>
+
+<div class="app">
+  <header>
+    <div class="logo" id="logo">الدراويش</div>
+    <div class="hdr" style="display:flex;gap:8px;align-items:center">
+      <button class="btn-reset" id="add-btn">➕ أغاني</button>
+      <button class="btn-reset" id="exp-btn">📦 تصدير</button>
+      <button class="btn-reset" id="reset-btn">↺ ترتيب</button>
+      <span class="chip" id="mode">🎧</span>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="all">الكل (<span id="c-all">0</span>)</button>
+    <button class="tab" data-tab="fav">المفضلة (<span id="c-fav">0</span>)</button>
+  </div>
+
+  <div class="bar">
+    <input class="search" id="search" placeholder="🔍 ابحث عن أغنية">
+    <select class="sort" id="sort">
+      <option value="custom">ترتيبي</option>
+      <option value="az">أبجدي</option>
+      <option value="newest">الأحدث</option>
+    </select>
+    <button class="sort" id="sel-btn">☑ تحديد</button>
+  </div>
+
+  <div class="list" id="list"></div>
+</div>
+
+<div class="mini" id="mini">
+  <div class="ico" style="width:38px;height:38px;font-size:1rem">🎵</div>
+  <div class="info"><div class="name" id="mini-name"></div></div>
+  <button class="pp" id="mini-pp">▶</button>
+</div>
+
+<div class="selbar" id="selbar">
+  <span id="sel-n"></span>
+  <button id="sel-all">الكل</button>
+  <button id="sel-fav">❤️</button>
+  <button id="sel-unfav">💔</button>
+  <button class="dev-only" id="sel-del">🗑</button>
+  <button id="sel-x">✕</button>
+</div>
+
+<div class="np" id="np">
+  <div class="np-top">
+    <button id="np-close">⌄</button>
+    <span>يعمل الآن</span>
+    <span style="width:30px"></span>
+  </div>
+  <div class="stage"><span class="glyph">♪</span></div>
+  <div class="np-title" id="np-title"></div>
+  <div class="np-sub" id="np-sub">صوت</div>
+  <div class="prog" id="prog"><i id="prog-fill"></i></div>
+  <div class="times"><span id="t-cur">0:00</span><span id="t-dur">0:00</span></div>
+  <div class="ctrls">
+    <button id="prev">⏮</button>
+    <button class="big" id="play">▶</button>
+    <button id="next">⏭</button>
+  </div>
+  <div class="actions">
+    <button class="act" id="a-queue"><span class="e">📑</span>القادمة</button>
+    <button class="act" id="a-fav"><span class="e">📍</span>تثبيت</button>
+    <button class="act" id="a-shuffle"><span class="e">🔀</span>عشوائي</button>
+    <button class="act" id="a-repeat"><span class="e">🔁</span>تكرار</button>
+  </div>
+  <div class="queue" id="queue"></div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet"><div class="grip"></div><div id="sheet-body"></div></div>
+<div class="toast" id="toast"></div>
+<audio id="player" preload="metadata"></audio>
+<input type="file" id="file-in" accept="audio/*" multiple hidden>
+<script id="packed" type="application/json">{}</script>
+
+<script>
+// =====================================================================
+// إعدادات المطور
+// =====================================================================
+const DEV_PIN = "1234";
+
+// رابط صورة الخلفية (Gist Raw). سيبه "" لو مش عايز صورة
+const BG_IMAGE = "";
+
+// أغاني المجلد (اختياري). الأفضل تضيف أغانيك من زر ➕ في وضع المطور
+const SONGS = [
+  // { id: "s1", name: "اسم الأغنية", file: "songs/song1.mp3" },
+];
+
+// أبيات عمرو حسن (حطها هنا)
+const POEM_LINES = ["حبيتك ليه"];
+// =====================================================================
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store = {
+  get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
+  set(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+};
+const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ===================== الحالة =====================
+const player = $('player');
+// الأغاني المدمجة داخل الملف (بعد التصدير)
+const PACK = (() => { try { return JSON.parse($('packed').textContent) || {}; } catch { return {}; } })();
+let tracks = [];
+let extra = []; // الأغاني التي أضافها المطور
+let curId = null;
+let tab = 'all', q = '', sortMode = 'custom';
+let shuffle = false, repeat = 'off', queueOpen = false, devMode = false;
+let selMode = false, lp = false;
+const sel = new Set();
+let favs = store.get('sf_favs', []);
+let order = store.get('sf_order', []);
+if (!order.length) order = PACK.order || [];
+let names = { ...(PACK.names || {}), ...store.get('sf_names', {}) };
+let dels = [...new Set([...(PACK.dels || []), ...store.get('sf_del', [])])];
+
+// ===================== الخلفية =====================
+if (BG_IMAGE) $('bg').style.backgroundImage = `url("${BG_IMAGE}")`;
+$('poem').innerHTML = POEM_LINES.map(l => `<span>${esc(l)}</span>`).join('');
+const BIRD = `<svg viewBox="0 0 100 60" width="100%"><path d="M20 35Q35 20 60 28Q75 22 88 18Q80 30 72 38Q55 52 30 48Q20 46 20 35Z" fill="#fff"/><circle cx="86" cy="20" r="8" fill="#fff"/><path d="M5 28L20 35L8 42Z" fill="#fff"/><path class="w" d="M45 30Q35 5 15 12Q30 25 45 30Z" fill="#fff"/></svg>`;
+[[12,22,0,60],[28,30,6,45],[50,26,12,70],[70,34,3,50],[85,28,17,55]].forEach(([top,dur,delay,size]) => {
+  const b = document.createElement('div');
+  b.className = 'bird';
+  b.style.cssText = `top:${top}%;width:${size}px;animation-duration:${dur}s;animation-delay:-${delay}s`;
+  b.innerHTML = BIRD;
+  $('birds').appendChild(b);
+});
+
+// صورة الغلاف PNG لشاشة القفل والإشعارات
+const ART = (() => {
+  const c = document.createElement('canvas');
+  c.width = c.height = 512;
+  const g = c.getContext('2d');
+  g.fillStyle = '#000'; g.fillRect(0, 0, 512, 512);
+  g.fillStyle = '#ff5500'; g.font = 'bold 300px Arial';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('د', 256, 270);
+  return c.toDataURL('image/png');
+})();
+
+// ===================== تخزين الأغاني (IndexedDB) =====================
+const idb = (mode, fn) => new Promise((res, rej) => {
+  const o = indexedDB.open('darawish', 1);
+  o.onupgradeneeded = () => o.result.createObjectStore('songs', { keyPath: 'id' });
+  o.onerror = () => rej(o.error);
+  o.onsuccess = () => {
+    const t = o.result.transaction('songs', mode);
+    const r = fn(t.objectStore('songs'));
+    t.oncomplete = () => res(r && r.result);
+    t.onerror = () => rej(t.error);
+  };
+});
+
+// ===================== تحميل الأغاني =====================
+function buildTracks() {
+  tracks = [...SONGS, ...extra].filter(s => !dels.includes(s.id)).map(s => ({ ...s, name: names[s.id] || s.name }));
+  if (order.length) {
+    const pos = id => { const i = order.indexOf(id); return i < 0 ? 1e9 : i; };
+    tracks.sort((a, b) => pos(a.id) - pos(b.id));
+  }
+  updateCounts();
+  render();
+}
+
+async function loadExtra() {
+  extra = [];
+  for (const s of PACK.songs || []) {
+    if (dels.includes(s.id)) continue;
+    try {
+      const blob = await (await fetch(s.data)).blob();
+      extra.push({ id: s.id, name: s.name, file: URL.createObjectURL(blob), blob });
+    } catch (e) {}
+  }
+  try {
+    const rows = await idb('readonly', s => s.getAll());
+    (rows || []).forEach(r => {
+      if (dels.includes(r.id) || extra.some(x => x.id === r.id)) return;
+      extra.push({ id: r.id, name: r.name, file: URL.createObjectURL(r.blob), blob: r.blob });
+    });
+  } catch (e) {}
+  buildTracks();
+}
+
+// ===================== إضافة الأغاني (للمطور) =====================
+$('add-btn').onclick = () => $('file-in').click();
+$('file-in').onchange = async e => {
+  const files = [...e.target.files].filter(f => f.type.startsWith('audio') || /\.(mp3|m4a|wav|ogg|aac)$/i.test(f.name));
+  e.target.value = '';
+  for (const f of files) {
+    const id = 'u' + Date.now() + Math.random().toString(36).slice(2, 6);
+    const name = f.name.replace(/\.[^.]+$/, '');
+    extra.push({ id, name, file: URL.createObjectURL(f), blob: f });
+    try { await idb('readwrite', s => s.put({ id, name, blob: f })); } catch (err) {}
+  }
+  buildTracks();
+  toast(files.length ? `تمت إضافة ${files.length} أغنية` : 'اختر ملفات صوتية');
+};
+
+// ===================== تصدير نسخة فيها كل الأغاني =====================
+const toData = b => new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(b); });
+
+$('exp-btn').onclick = async () => {
+  if (!extra.length && !dels.length) return toast('أضف أغاني أولاً');
+  toast('جارٍ تجهيز النسخة...');
+  const songs = [];
+  for (const x of extra) songs.push({ id: x.id, name: names[x.id] || x.name, data: await toData(x.blob) });
+  const c = document.documentElement.cloneNode(true);
+  ['birds', 'list', 'queue', 'sheet-body', 'poem'].forEach(i => c.querySelector('#' + i).innerHTML = '');
+  c.querySelectorAll('.show').forEach(e => e.classList.remove('show'));
+  c.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('on', i === 0));
+  c.querySelector('body').className = '';
+  c.querySelector('#bg').removeAttribute('style');
+  c.querySelector('#player').removeAttribute('src');
+  c.querySelector('#packed').textContent = JSON.stringify({ songs, names, order, dels }).replace(/</g, '\\u003c');
+  const file = new File(['<!DOCTYPE html>\n' + c.outerHTML], 'darawish.html', { type: 'text/html' });
+  const mb = (file.size / 1048576).toFixed(1);
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); return; } catch (err) { if (err.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file); a.download = file.name; a.click();
+  toast(`تم التحميل (${mb} ميجا)`);
+};
+
+// ===================== الترتيب والتعديل (للمطور) =====================
+function moveTrack(id, dir) {
+  const vis = visible();
+  const i = vis.findIndex(t => t.id === id), j = i + dir;
+  if (i < 0 || j < 0 || j >= vis.length) return;
+  const a = tracks.findIndex(t => t.id === vis[i].id);
+  const b = tracks.findIndex(t => t.id === vis[j].id);
+  [tracks[a], tracks[b]] = [tracks[b], tracks[a]];
+  order = tracks.map(t => t.id);
+  store.set('sf_order', order);
+  sortMode = 'custom'; $('sort').value = 'custom';
+  render();
+}
+
+$('reset-btn').onclick = () => {
+  order = PACK.order || []; names = { ...(PACK.names || {}) };
+  store.set('sf_order', order); store.set('sf_names', names);
+  sortMode = 'custom'; $('sort').value = 'custom';
+  buildTracks(); toast('تم إعادة الترتيب');
+};
+
+// ===================== الفلترة والعرض =====================
+function visible() {
+  let l = [...tracks];
+  if (tab === 'fav') l = l.filter(t => favs.includes(t.id));
+  if (q) l = l.filter(t => t.name.toLowerCase().includes(q));
+  if (sortMode === 'az') l.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+  if (sortMode === 'newest') l.reverse();
+  return l;
+}
+
+function updateCounts() {
+  $('c-all').textContent = tracks.length;
+  $('c-fav').textContent = favs.filter(id => tracks.some(t => t.id === id)).length;
+}
+
+function render() {
+  const box = $('list'), st = box.scrollTop;
+  const l = visible();
+  box.innerHTML = '';
+  if (!l.length) { box.innerHTML = '<div class="empty">لا توجد أغاني في هذه القائمة</div>'; return; }
+  l.forEach(t => {
+    const fav = favs.includes(t.id);
+    const row = document.createElement('div');
+    row.className = 'row' + (t.id === curId && !selMode ? ' on' : '') + (sel.has(t.id) ? ' sel' : '');
+    row.innerHTML = `
+      <div class="ico">${selMode ? (sel.has(t.id) ? '☑' : '☐') : '🎵'}</div>
+      <div class="info">
+        <div class="name">${esc(t.name)}</div>
+        <div class="sub">${t.id === curId ? 'يعمل الآن' : 'صوت'}</div>
+      </div>
+      <button class="heart ${fav ? 'on' : ''}">${fav ? '❤️' : '🤍'}</button>
+      <button class="more">⋮</button>`;
+    row.onclick = () => { if (lp) { lp = false; return; } selMode ? toggleSel(t.id) : openPlayer(t.id, true); };
+    let tm;
+    row.onpointerdown = () => { tm = setTimeout(() => { if (!selMode) { lp = true; startSel(t.id); } }, 500); };
+    ['onpointerup', 'onpointerleave', 'onpointermove', 'onpointercancel'].forEach(ev => row[ev] = () => clearTimeout(tm));
+    row.oncontextmenu = e => e.preventDefault();
+    row.querySelector('.heart').onclick = e => { e.stopPropagation(); toggleFav(t.id); };
+    row.querySelector('.more').onclick = e => { e.stopPropagation(); openMenu(t.id); };
+    box.appendChild(row);
+  });
+  box.scrollTop = st;
+}
+
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  tab = b.dataset.tab;
+  render();
+});
+$('search').oninput = e => { q = e.target.value.trim().toLowerCase(); render(); };
+$('sort').onchange = e => { sortMode = e.target.value; render(); };
+
+function toggleFav(id) {
+  favs = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id];
+  store.set('sf_favs', favs);
+  updateCounts(); render(); syncUI();
+}
+
+// ===================== التحديد المتعدد =====================
+document.addEventListener('pointerup', () => setTimeout(() => lp = false, 300));
+
+function removeSong(id) {
+  extra = extra.filter(x => x.id !== id);
+  if (!dels.includes(id)) dels.push(id);
+  store.set('sf_del', dels);
+  idb('readwrite', s => s.delete(id)).catch(() => {});
+  if (curId === id) { player.pause(); player.removeAttribute('src'); curId = null; $('np').classList.remove('show'); }
+}
+function updSel() { $('sel-n').textContent = `تم تحديد ${sel.size}`; }
+function startSel(id) {
+  selMode = true; sel.clear(); if (id) sel.add(id);
+  document.body.classList.add('selecting');
+  $('selbar').classList.add('show');
+  render(); updSel();
+}
+function exitSel() {
+  selMode = false; sel.clear();
+  document.body.classList.remove('selecting');
+  $('selbar').classList.remove('show');
+  render();
+}
+function toggleSel(id) {
+  sel.has(id) ? sel.delete(id) : sel.add(id);
+  render(); updSel();
+}
+function doneSel(msg) { store.set('sf_favs', favs); updateCounts(); exitSel(); syncUI(); toast(msg); }
+$('sel-btn').onclick = () => selMode ? exitSel() : startSel();
+$('sel-x').onclick = exitSel;
+$('sel-all').onclick = () => {
+  const v = visible(), all = v.every(t => sel.has(t.id));
+  v.forEach(t => all ? sel.delete(t.id) : sel.add(t.id));
+  render(); updSel();
+};
+$('sel-fav').onclick = () => {
+  if (!sel.size) return toast('حدد أغاني أولاً');
+  favs = [...new Set([...favs, ...sel])]; doneSel('أضيفت للمفضلة');
+};
+$('sel-unfav').onclick = () => {
+  if (!sel.size) return toast('حدد أغاني أولاً');
+  favs = favs.filter(x => !sel.has(x)); doneSel('أزيلت من المفضلة');
+};
+$('sel-del').onclick = () => {
+  if (!sel.size) return toast('حدد أغاني أولاً');
+  if (!confirm(`حذف ${sel.size} أغنية؟`)) return;
+  [...sel].forEach(removeSong);
+  exitSel(); buildTracks(); updateMini();
+};
+
+// ===================== الشيت =====================
+function openSheet(html) {
+  $('sheet-body').innerHTML = html;
+  $('scrim').classList.add('show');
+  $('sheet').classList.add('show');
+}
+function closeSheet() {
+  $('scrim').classList.remove('show');
+  $('sheet').classList.remove('show');
+}
+$('scrim').onclick = closeSheet;
+
+function openMenu(id) {
+  const t = tracks.find(x => x.id === id);
+  if (!t) return;
+  let h = `<div style="text-align:center;font-weight:700;margin-bottom:8px">${esc(t.name)}</div>
+    <button class="opt" data-a="play">▶ تشغيل</button>
+    <button class="opt" data-a="fav">${favs.includes(id) ? '💔 إزالة من المفضلة' : '❤️ إضافة للمفضلة'}</button>`;
+  if (devMode) {
+    h += `<button class="opt" data-a="rename">✎ تعديل الاسم</button>
+      <button class="opt" data-a="up">⬆️ تحريك لأعلى</button>
+      <button class="opt" data-a="down">⬇️ تحريك لأسفل</button>
+      <button class="opt danger" data-a="del">🗑 حذف الأغنية</button>`;
+  }
+  openSheet(h);
+  $('sheet-body').onclick = e => {
+    const b = e.target.closest('[data-a]');
+    if (!b) return;
+    const a = b.dataset.a;
+    if (a === 'play') { closeSheet(); openPlayer(id, true); }
+    if (a === 'fav') { toggleFav(id); closeSheet(); }
+    if (a === 'up') { moveTrack(id, -1); closeSheet(); }
+    if (a === 'down') { moveTrack(id, 1); closeSheet(); }
+    if (a === 'del') { removeSong(id); closeSheet(); buildTracks(); updateMini(); }
+    if (a === 'rename') {
+      openSheet(`<input id="rn" value="${esc(t.name)}"><button class="save" id="rn-ok">حفظ</button>`);
+      $('rn').focus();
+      $('rn-ok').onclick = () => {
+        const v = $('rn').value.trim();
+        if (!v) return;
+        names[id] = v; store.set('sf_names', names);
+        t.name = v;
+        if (curId === id) { $('np-title').textContent = v; meta(t); updateMini(); }
+        closeSheet(); render();
+      };
+    }
+  };
+}
+
+// الدخول لوضع المطور: 5 ضغطات على الاسم ثم الرقم السري
+let logoTaps = 0, logoTimer = null;
+$('logo').onclick = () => {
+  logoTaps++;
+  clearTimeout(logoTimer);
+  logoTimer = setTimeout(() => logoTaps = 0, 1200);
+  if (logoTaps < 5) return;
+  logoTaps = 0;
+  if (devMode) return setDev(false);
+  openSheet(`<div style="text-align:center;margin-bottom:10px">أدخل الرقم السري للمطور</div>
+    <input id="pin" type="password" inputmode="numeric"><button class="save" id="pin-ok">دخول</button>`);
+  $('pin').focus();
+  $('pin-ok').onclick = () => {
+    if ($('pin').value === DEV_PIN) { setDev(true); closeSheet(); toast('وضع المطور مفعّل'); }
+    else toast('الرقم غير صحيح');
+  };
+};
+
+function setDev(v) {
+  devMode = v;
+  document.body.classList.toggle('dev', v);
+  $('mode').textContent = v ? '🛠️' : '🎧';
+  render();
+}
+
+// ===================== المشغل =====================
+function loadTrack(id) {
+  const t = tracks.find(x => x.id === id);
+  if (!t) return null;
+  if (curId !== id) {
+    curId = id;
+    player.src = t.file;
+  }
+  $('np-title').textContent = t.name;
+  meta(t);
+  return t;
+}
+
+function openPlayer(id) {
+  if (!loadTrack(id)) return;
+  $('np').classList.add('show');
+  playNow();
+  updateMini();
+  render();
+  renderQueue();
+  syncUI();
+}
+
+function playNow() {
+  if (!curId) return;
+  player.play().catch(() => toast('تعذر تشغيل الملف'));
+}
+
+function togglePlay() {
+  if (!curId) return;
+  player.paused ? playNow() : player.pause();
+}
+
+function list() { const v = visible(); return v.length ? v : tracks; }
+
+function goTo(target) {
+  loadTrack(target.id);
+  render(); renderQueue(); syncUI(); updateMini();
+  playNow();
+}
+
+function next(auto) {
+  const l = list();
+  if (!l.length) return;
+  if (auto && repeat === 'one') { player.currentTime = 0; playNow(); return; }
+  let target;
+  if (shuffle && l.length > 1) {
+    do { target = l[Math.floor(Math.random() * l.length)]; } while (target.id === curId);
+  } else {
+    const i = l.findIndex(t => t.id === curId);
+    if (i === l.length - 1 && auto && repeat === 'off') { player.pause(); return; }
+    target = l[(i + 1) % l.length];
+  }
+  goTo(target);
+}
+
+function prev() {
+  const l = list();
+  if (!l.length) return;
+  const i = l.findIndex(t => t.id === curId);
+  goTo(l[(i - 1 + l.length) % l.length]);
+}
+
+function updateMini() {
+  const t = tracks.find(x => x.id === curId);
+  const show = !!t && !$('np').classList.contains('show');
+  $('mini').classList.toggle('show', show);
+  if (t) $('mini-name').textContent = t.name;
+}
+
+function renderQueue() {
+  const qBox = $('queue');
+  if (!queueOpen) { qBox.classList.remove('show'); return; }
+  const l = list();
+  const i = l.findIndex(t => t.id === curId);
+  const upcoming = [...l.slice(i + 1), ...l.slice(0, Math.max(i, 0))];
+  qBox.innerHTML = `<div class="queue-title">القادمة (${upcoming.length})</div>` +
+    (upcoming.length ? upcoming.map(t => `
+      <div class="row" data-id="${t.id}">
+        <div class="ico">🎵</div>
+        <div class="info"><div class="name">${esc(t.name)}</div><div class="sub">صوت</div></div>
+      </div>`).join('') : '<div class="empty">لا توجد أغاني قادمة</div>');
+  qBox.classList.add('show');
+}
+$('queue').onclick = e => {
+  const r = e.target.closest('[data-id]');
+  if (r) openPlayer(r.dataset.id);
+};
+
+function syncUI() {
+  const playing = !player.paused;
+  $('play').textContent = playing ? '⏸' : '▶';
+  $('mini-pp').textContent = playing ? '⏸' : '▶';
+  $('a-shuffle').classList.toggle('on', shuffle);
+  $('a-repeat').classList.toggle('on', repeat !== 'off');
+  $('a-repeat').innerHTML = `<span class="e">${repeat === 'one' ? '🔂' : '🔁'}</span>${repeat === 'one' ? 'تكرار 1' : 'تكرار'}`;
+  $('a-queue').classList.toggle('on', queueOpen);
+  const fav = !!curId && favs.includes(curId);
+  $('a-fav').classList.toggle('on', fav);
+  $('a-fav').innerHTML = `<span class="e">${fav ? '📌' : '📍'}</span>${fav ? 'مثبّتة' : 'تثبيت'}`;
+}
+
+$('play').onclick = togglePlay;
+$('mini-pp').onclick = e => { e.stopPropagation(); togglePlay(); };
+$('next').onclick = () => next(false);
+$('prev').onclick = prev;
+$('mini').onclick = () => { $('np').classList.add('show'); updateMini(); };
+$('np-close').onclick = () => { $('np').classList.remove('show'); updateMini(); };
+$('a-fav').onclick = () => { if (curId) toggleFav(curId); };
+$('a-shuffle').onclick = () => { shuffle = !shuffle; if (shuffle) repeat = 'off'; syncUI(); toast(shuffle ? 'عشوائي مفعّل' : 'عشوائي متوقف'); };
+$('a-repeat').onclick = () => {
+  repeat = repeat === 'off' ? 'all' : repeat === 'all' ? 'one' : 'off';
+  if (repeat !== 'off') shuffle = false;
+  syncUI();
+  toast(repeat === 'all' ? 'تكرار القائمة' : repeat === 'one' ? 'تكرار الأغنية' : 'التكرار متوقف');
+};
+$('a-queue').onclick = () => { queueOpen = !queueOpen; renderQueue(); syncUI(); };
+
+$('prog').onclick = e => {
+  if (!player.duration || !isFinite(player.duration)) return;
+  const r = $('prog').getBoundingClientRect();
+  player.currentTime = ((e.clientX - r.left) / r.width) * player.duration;
+};
+
+player.onplay = () => { syncUI(); setPlaybackState('playing'); };
+player.onpause = () => { if (!player.ended) { syncUI(); setPlaybackState('paused'); } };
+player.onended = () => next(true);
+player.ontimeupdate = () => {
+  if (!player.duration || !isFinite(player.duration)) return;
+  $('prog-fill').style.width = (player.currentTime / player.duration * 100) + '%';
+  $('t-cur').textContent = fmt(player.currentTime);
+  $('t-dur').textContent = fmt(player.duration);
+  setPositionState();
+};
+
+// ===================== Media Session (شاشة القفل والإشعارات) =====================
+const hasMS = 'mediaSession' in navigator;
+
+function meta(t) {
+  if (!hasMS || !t) return;
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: t.name,
+      artist: 'الدراويش',
+      album: 'الدراويش',
+      artwork: [{ src: ART, sizes: '512x512', type: 'image/png' }]
+    });
+  } catch (e) {}
+}
+
+function setPlaybackState(s) {
+  if (hasMS) try { navigator.mediaSession.playbackState = s; } catch (e) {}
+}
+
+function setPositionState() {
+  if (!hasMS || !navigator.mediaSession.setPositionState) return;
+  if (!player.duration || !isFinite(player.duration)) return;
+  try {
+    navigator.mediaSession.setPositionState({
+      duration: player.duration,
+      playbackRate: player.playbackRate,
+      position: Math.min(player.currentTime, player.duration)
+    });
+  } catch (e) {}
+}
+
+if (hasMS) {
+  const handlers = {
+    play: () => playNow(),
+    pause: () => player.pause(),
+    previoustrack: prev,
+    nexttrack: () => next(false),
+    seekbackward: d => { player.currentTime = Math.max(0, player.currentTime - (d.seekOffset || 10)); },
+    seekforward: d => { player.currentTime = Math.min(player.duration || 0, player.currentTime + (d.seekOffset || 10)); },
+    seekto: d => { player.currentTime = d.seekTime; }
+  };
+  Object.entries(handlers).forEach(([k, fn]) => {
+    try { navigator.mediaSession.setActionHandler(k, fn); } catch (e) {}
+  });
+}
+
+// ===================== بدء =====================
+setDev(false);
+buildTracks();
+loadExtra();
+</script>
+</body>
+</html>
